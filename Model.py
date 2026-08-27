@@ -103,8 +103,8 @@ def verify_dataset(base_path, split_name):
 
 
 
-train_images = verify_dataset(train_path, "Train")
-val_images = verify_dataset(val_path, "Val")
+train_images_paths = verify_dataset(train_path, "Train")
+val_images_paths = verify_dataset(val_path, "Val")
 
 
 train_counts = [len(os.listdir(os.path.join(train_path, cls, 'images'))) for cls in Class_Names.values()]
@@ -136,7 +136,7 @@ with open('data.yaml', 'w') as f:
 
 
 
-
+'''
 classes = list(Class_Names.values())
 x = np.arange(len(classes))  
             
@@ -160,7 +160,7 @@ for bar in bars_val:
 
 plt.tight_layout()
 plt.show()
-
+'''
 
 
 '''
@@ -197,7 +197,7 @@ plt.show()
 '''
 image_shapes = []
 
-for img_path in np.array(train_images + val_images):
+for img_path in np.array(train_images_paths + val_images_paths):
     with Image.open(img_path) as img:
         image_shapes.append(img.size) 
 
@@ -213,7 +213,7 @@ plt.tight_layout()
 plt.show()
 '''
 
-
+'''
 def visualize_samples(image_list, num_samples):
     sample_paths = random.sample(image_list, num_samples)
     fig, axes = plt.subplots(1, num_samples, figsize=(16, 4))
@@ -249,3 +249,47 @@ def visualize_samples(image_list, num_samples):
 
 
 visualize_samples(train_images, num_samples=2)
+'''
+
+
+'''
+box_widths = []
+box_heights = []
+
+for img_path in train_images_paths + val_images_paths:
+    txt_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
+    if os.path.exists(txt_path):
+        with open(txt_path, 'r') as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) == 5:
+                    w, h = float(parts[3]), float(parts[4])
+                    box_widths.append(w)
+                    box_heights.append(h)
+
+plt.figure(figsize=(7, 5))
+plt.hist2d(box_widths, box_heights, bins=30, cmap='GnBu')
+plt.colorbar(label='Bounding Box Count')
+
+plt.title("Bounding Box Dimensions (Width vs Height)", fontsize=12, fontweight="bold")
+plt.xlabel("Width (Normalized)", fontsize=10)
+plt.ylabel("Height (Normalized)", fontsize=10)
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+
+plt.tight_layout()
+plt.show()
+'''
+
+model = YOLO('yolov8n.pt')  
+
+results = model.train(
+    data='data.yaml',
+    epochs=50,
+    imgsz=640,
+    batch=16,
+    workers=4,
+    name='yolov8n_baseline',
+    seed=42
+)
+
