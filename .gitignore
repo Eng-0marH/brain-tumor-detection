@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Ignore raw dataset folder and image files
+Brain Tumor with Bounding Boxes/
+*.jpg
+*.jpeg
+*.png
+
+# Ignore generated manifest lists
+train_list.txt
+val_list.txt
+
+# Ignore YOLO training runs & model weights
+runs/
+*.pt
