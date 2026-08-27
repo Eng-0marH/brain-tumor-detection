@@ -1,0 +1,7 @@
+names:
+  0: Glioma
+  1: Meningioma
+  2: No Tumor
+  3: Pituitary
+train: C:\Users\omar\Desktop\MLA Project\train_list.txt
+val: C:\Users\omar\Desktop\MLA Project\val_list.txt
