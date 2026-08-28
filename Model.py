@@ -36,14 +36,9 @@ def verify_dataset(base_path, split_name):
 
     for img_path in image_paths:
         
-        try:
-            with Image.open(img_path) as img:
-                img.verify()
-            cv_img = cv2.imread(img_path)
-            if cv_img is None:
-                corrupt_images.append(img_path)
-                continue
-        except Exception:
+        
+        cv_img = cv2.imread(img_path)
+        if cv_img is None:
             corrupt_images.append(img_path)
             continue
 
@@ -58,11 +53,7 @@ def verify_dataset(base_path, split_name):
             lines = [l.strip() for l in f.readlines() if l.strip()]
 
         if not lines:
-            if 'No Tumor' in img_path:
-                
-                clean_images_paths.append(img_path)
-            else:
-                empty_labels.append(txt_path)
+            empty_labels.append(txt_path)
             continue
 
         
@@ -116,10 +107,10 @@ train_txt_path = os.path.abspath('train_list.txt')
 val_txt_path = os.path.abspath('val_list.txt')
 
 with open(train_txt_path, 'w') as f:
-    f.write('\n'.join(train_images))
+    f.write('\n'.join(train_images_paths))
 
 with open(val_txt_path, 'w') as f:
-    f.write('\n'.join(val_images))
+    f.write('\n'.join(val_images_paths))
 '''
 
 '''
@@ -130,7 +121,7 @@ yaml_content = {
 }
 
 with open('data.yaml', 'w') as f:
-    yaml.dump(yaml_content, f)
+    yaml.dump(yaml_content, f ,default_flow_style=False )
 
 '''
 
@@ -168,7 +159,7 @@ box_widths = []
 box_heights = []
 
 
-for img_path in train_images + val_images:
+for img_path in train_images_paths + val_images_paths:
     txt_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
     
     if os.path.exists(txt_path):
@@ -184,8 +175,8 @@ plt.figure(figsize=(7, 5))
 plt.scatter(box_widths, box_heights, alpha=0.3, color='purple')
 
 plt.title("Tumor Dimensions (Width vs Height)", fontsize=14, fontweight="bold")
-plt.xlabel("Width (Normalized)", fontsize=12)
-plt.ylabel("Height (Normalized)", fontsize=12)
+plt.xlabel("Width ", fontsize=12)
+plt.ylabel("Height ", fontsize=12)
 plt.xlim(0, 1)
 plt.ylim(0, 1)
 
@@ -248,39 +239,11 @@ def visualize_samples(image_list, num_samples):
     plt.show()
 
 
-visualize_samples(train_images, num_samples=2)
+visualize_samples(train_images_paths, num_samples=2)
 '''
 
 
-'''
-box_widths = []
-box_heights = []
-
-for img_path in train_images_paths + val_images_paths:
-    txt_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
-    if os.path.exists(txt_path):
-        with open(txt_path, 'r') as f:
-            for line in f:
-                parts = line.strip().split()
-                if len(parts) == 5:
-                    w, h = float(parts[3]), float(parts[4])
-                    box_widths.append(w)
-                    box_heights.append(h)
-
-plt.figure(figsize=(7, 5))
-plt.hist2d(box_widths, box_heights, bins=30, cmap='GnBu')
-plt.colorbar(label='Bounding Box Count')
-
-plt.title("Bounding Box Dimensions (Width vs Height)", fontsize=12, fontweight="bold")
-plt.xlabel("Width (Normalized)", fontsize=10)
-plt.ylabel("Height (Normalized)", fontsize=10)
-plt.xlim(0, 1)
-plt.ylim(0, 1)
-
-plt.tight_layout()
-plt.show()
-'''
-
+"""
 model = YOLO('yolov8n.pt')  
 
 results = model.train(
@@ -290,6 +253,7 @@ results = model.train(
     batch=16,
     workers=4,
     name='yolov8n_baseline',
-    seed=42
+    seed=42,
+    patience = 10,
 )
-
+"""
