@@ -25,6 +25,9 @@ train_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes
 val_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes\Val"
 
 
+TRAIN_LIST_PATH = os.path.abspath('train_list.txt')
+VAL_LIST_PATH = os.path.abspath('val_list.txt')
+
 
 def verify_dataset(base_path, split_name):
 
@@ -97,30 +100,79 @@ def verify_dataset(base_path, split_name):
 
 
 
-train_images_paths = verify_dataset(train_path, "Train")
-val_images_paths = verify_dataset(val_path, "Val")
-
-
-
-train_counts = [len(os.listdir(os.path.join(train_path, cls, 'images'))) for cls in Class_Names.values()]
-val_counts = [len(os.listdir(os.path.join(val_path, cls, 'images'))) for cls in Class_Names.values()]
-
-
-
-def make_yaml():
-
-    train_txt_path = os.path.abspath('train_list.txt')
-    val_txt_path = os.path.abspath('val_list.txt')
-
-    with open(train_txt_path, 'w') as f:
+def create_txt_files():
+   
+    train_images_paths = verify_dataset(train_path, "Train")
+    val_images_paths = verify_dataset(val_path, "Val")
+ 
+    with open(TRAIN_LIST_PATH, 'w') as f:
         f.write('\n'.join(train_images_paths))
-
-    with open(val_txt_path, 'w') as f:
+ 
+    with open(VAL_LIST_PATH, 'w') as f:
         f.write('\n'.join(val_images_paths))
 
+
+    return train_images_paths, val_images_paths
+
+
+ 
+ 
+def read_txt_files():
+
+    with open(TRAIN_LIST_PATH, 'r') as f:
+        train_images_paths = [line.strip() for line in f if line.strip()]
+ 
+    with open(VAL_LIST_PATH, 'r') as f:
+        val_images_paths = [line.strip() for line in f if line.strip()]
+ 
+ 
+    return train_images_paths, val_images_paths
+ 
+
+
+ 
+def get_image_lists():
+    
+    global train_images_paths, val_images_paths
+ 
+    if os.path.exists(TRAIN_LIST_PATH) and os.path.exists(VAL_LIST_PATH):
+        train_images_paths, val_images_paths = read_txt_files()
+    else:
+        train_images_paths, val_images_paths = create_txt_files()
+
+ 
+    return train_images_paths, val_images_paths
+ 
+ 
+
+train_images_paths, val_images_paths = get_image_lists()
+ 
+ 
+ 
+def count_by_class(list_txt_path, base_path):
+    
+    with open(list_txt_path, 'r') as f:
+        image_paths = [line.strip() for line in f if line.strip()]
+ 
+    counts = []
+    for cls in Class_Names.values():
+        class_folder = os.path.normpath(os.path.join(base_path, cls, 'images'))
+        count = sum(1 for p in image_paths if os.path.normpath(p).startswith(class_folder))
+        counts.append(count)
+    return counts
+ 
+ 
+train_counts = count_by_class(TRAIN_LIST_PATH, train_path)
+val_counts = count_by_class(VAL_LIST_PATH, val_path)
+ 
+ 
+
+ 
+def make_yaml():
+
     yaml_content = {
-        'train': train_txt_path,
-        'val': val_txt_path,
+        'train': TRAIN_LIST_PATH,
+        'val': VAL_LIST_PATH,
         'names': Class_Names
     }
     with open('data.yaml', 'w') as f:
@@ -178,7 +230,7 @@ def tumor_dimension() :
     plt.figure(figsize=(7, 5))
     plt.scatter(box_widths, box_heights, alpha=0.3, color='purple')
 
-    plt.title("Tumor Dimensions (Width vs Height)", fontsize=14, fontweight="bold")
+    plt.title("Tumor Dimensions (Width & Height)", fontsize=14, fontweight="bold")
     plt.xlabel("Width ", fontsize=12)
     plt.ylabel("Height ", fontsize=12)
     plt.xlim(0, 1)
@@ -191,20 +243,25 @@ def tumor_dimension() :
 
 
 def image_shapes() :
-    image_shapes = []
+
+    img_sizes = []
 
     for img_path in np.array(train_images_paths + val_images_paths):
         with Image.open(img_path) as img:
-            image_shapes.append(img.size) 
+            img_sizes.append(img.size) 
 
-    widths, heights = zip(*image_shapes)
+    widths, heights = zip(*img_sizes)
 
+    x_min , x_max = np.percentile(widths, [1, 99])
+    y_min , y_max = np.percentile(heights, [1, 99])
     plt.figure(figsize=(7, 4))
-    plt.hist2d(widths, heights, bins=10, cmap='Purples')
+    plt.hist2d(widths, heights, bins=10,range= [[x_min,x_max],[y_min,y_max]] , cmap='viridis')
     plt.colorbar(label='Image Count')
     plt.title("Image Resolution Distribution", fontsize=12, fontweight="bold")
     plt.xlabel("Width (Pixels)", fontsize=10)
     plt.ylabel("Height (Pixels)", fontsize=10)
+    plt.xticks(np.linspace(x_min, x_max, 10).astype(int))
+    plt.yticks(np.linspace(y_min, y_max, 10).astype(int))
     plt.tight_layout()
     plt.show()
 
