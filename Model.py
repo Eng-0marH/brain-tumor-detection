@@ -10,6 +10,7 @@ import yaml
 import random
 from PIL import Image
 
+
 Class_Names = {
     0: 'Glioma',
     1: 'Meningioma',
@@ -18,9 +19,11 @@ Class_Names = {
 }
 
 
+
 dataset_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes"
 train_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes\Train"
 val_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes\Val"
+
 
 
 def verify_dataset(base_path, split_name):
@@ -98,113 +101,117 @@ train_images_paths = verify_dataset(train_path, "Train")
 val_images_paths = verify_dataset(val_path, "Val")
 
 
+
 train_counts = [len(os.listdir(os.path.join(train_path, cls, 'images'))) for cls in Class_Names.values()]
 val_counts = [len(os.listdir(os.path.join(val_path, cls, 'images'))) for cls in Class_Names.values()]
 
 
-'''
-train_txt_path = os.path.abspath('train_list.txt')
-val_txt_path = os.path.abspath('val_list.txt')
 
-with open(train_txt_path, 'w') as f:
-    f.write('\n'.join(train_images_paths))
+def make_yaml():
 
-with open(val_txt_path, 'w') as f:
-    f.write('\n'.join(val_images_paths))
-'''
+    train_txt_path = os.path.abspath('train_list.txt')
+    val_txt_path = os.path.abspath('val_list.txt')
 
-'''
-yaml_content = {
-    'train': train_txt_path,
-    'val': val_txt_path,
-    'names': Class_Names
-}
+    with open(train_txt_path, 'w') as f:
+        f.write('\n'.join(train_images_paths))
 
-with open('data.yaml', 'w') as f:
-    yaml.dump(yaml_content, f ,default_flow_style=False )
+    with open(val_txt_path, 'w') as f:
+        f.write('\n'.join(val_images_paths))
 
-'''
+    yaml_content = {
+        'train': train_txt_path,
+        'val': val_txt_path,
+        'names': Class_Names
+    }
+    with open('data.yaml', 'w') as f:
+        yaml.dump(yaml_content, f ,default_flow_style=False )
 
 
 
-'''
-classes = list(Class_Names.values())
-x = np.arange(len(classes))  
-            
-plt.figure(figsize=(9, 5))
 
-bars_train = plt.bar(x - 0.2, train_counts, 0.4, label='Train', color='#4C72B0')
+def data_distributionb() :
 
-bars_val = plt.bar(x + 0.2, val_counts, 0.4, label='Validation', color='#DD8452')
+    classes = list(Class_Names.values())
+    x = np.arange(len(classes))  
+                
+    plt.figure(figsize=(9, 5))
 
-plt.title("Data Distributionb:Train & Val", fontsize=14, fontweight="bold")
-plt.xticks(x, classes)
-plt.legend()
+    bars_train = plt.bar(x - 0.2, train_counts, 0.4, label='Train', color='#4C72B0')
 
-for bar in bars_train:
-    yval = bar.get_height()
-    plt.text(bar.get_x() + bar.get_width()/2, yval + 15, str(yval), ha='center', fontweight='bold')
+    bars_val = plt.bar(x + 0.2, val_counts, 0.4, label='Validation', color='#DD8452')
 
-for bar in bars_val:
-    yval = bar.get_height()
-    plt.text(bar.get_x() + bar.get_width()/2, yval + 15, str(yval), ha='center', fontweight='bold')
+    plt.title("Data Distributionb:Train & Val", fontsize=14, fontweight="bold")
+    plt.xticks(x, classes)
+    plt.legend()
 
-plt.tight_layout()
-plt.show()
-'''
+    for bar in bars_train:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 15, str(yval), ha='center', fontweight='bold')
 
+    for bar in bars_val:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 15, str(yval), ha='center', fontweight='bold')
 
-'''
-box_widths = []
-box_heights = []
+    plt.tight_layout()
+    plt.show()
 
 
-for img_path in train_images_paths + val_images_paths:
-    txt_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
-    
-    if os.path.exists(txt_path):
-        with open(txt_path, 'r') as f:
-            for line in f:
-                parts = line.strip().split()
-                if len(parts) == 5:
-                    box_widths.append(float(parts[3]))
-                    box_heights.append(float(parts[4]))
 
 
-plt.figure(figsize=(7, 5))
-plt.scatter(box_widths, box_heights, alpha=0.3, color='purple')
-
-plt.title("Tumor Dimensions (Width vs Height)", fontsize=14, fontweight="bold")
-plt.xlabel("Width ", fontsize=12)
-plt.ylabel("Height ", fontsize=12)
-plt.xlim(0, 1)
-plt.ylim(0, 1)
-
-plt.tight_layout()
-plt.show()
-'''
+def tumor_dimension() :
+    box_widths = []
+    box_heights = []
 
 
-'''
-image_shapes = []
+    for img_path in train_images_paths + val_images_paths:
+        txt_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
+        
+        if os.path.exists(txt_path):
+            with open(txt_path, 'r') as f:
+                for line in f:
+                    parts = line.strip().split()
+                    if len(parts) == 5:
+                        box_widths.append(float(parts[3]))
+                        box_heights.append(float(parts[4]))
 
-for img_path in np.array(train_images_paths + val_images_paths):
-    with Image.open(img_path) as img:
-        image_shapes.append(img.size) 
 
-widths, heights = zip(*image_shapes)
+    plt.figure(figsize=(7, 5))
+    plt.scatter(box_widths, box_heights, alpha=0.3, color='purple')
 
-plt.figure(figsize=(7, 4))
-plt.hist2d(widths, heights, bins=20, cmap='Purples')
-plt.colorbar(label='Image Count')
-plt.title("Native Image Resolution Distribution", fontsize=12, fontweight="bold")
-plt.xlabel("Width (Pixels)", fontsize=10)
-plt.ylabel("Height (Pixels)", fontsize=10)
-plt.tight_layout()
-plt.show()
-'''
+    plt.title("Tumor Dimensions (Width vs Height)", fontsize=14, fontweight="bold")
+    plt.xlabel("Width ", fontsize=12)
+    plt.ylabel("Height ", fontsize=12)
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
 
-'''
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+def image_shapes() :
+    image_shapes = []
+
+    for img_path in np.array(train_images_paths + val_images_paths):
+        with Image.open(img_path) as img:
+            image_shapes.append(img.size) 
+
+    widths, heights = zip(*image_shapes)
+
+    plt.figure(figsize=(7, 4))
+    plt.hist2d(widths, heights, bins=10, cmap='Purples')
+    plt.colorbar(label='Image Count')
+    plt.title("Image Resolution Distribution", fontsize=12, fontweight="bold")
+    plt.xlabel("Width (Pixels)", fontsize=10)
+    plt.ylabel("Height (Pixels)", fontsize=10)
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
 def visualize_samples(image_list, num_samples):
     sample_paths = random.sample(image_list, num_samples)
     fig, axes = plt.subplots(1, num_samples, figsize=(16, 4))
@@ -239,8 +246,8 @@ def visualize_samples(image_list, num_samples):
     plt.show()
 
 
-visualize_samples(train_images_paths, num_samples=2)
-'''
+#visualize_samples(train_images_paths, num_samples=2)
+
 
 
 """
