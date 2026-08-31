@@ -29,6 +29,16 @@ val_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes\V
 TRAIN_LIST_PATH = os.path.abspath('train_list.txt')
 VAL_LIST_PATH = os.path.abspath('val_list.txt')
 
+def get_path(img_path):
+    label_dir = os.path.join(
+        os.path.dirname(os.path.dirname(img_path)),
+        'labels'
+    )
+    return os.path.join(
+        label_dir,
+        os.path.splitext(os.path.basename(img_path))[0] + '.txt'
+    )
+
 
 def verify_dataset(base_path, split_name):
 
@@ -51,15 +61,7 @@ def verify_dataset(base_path, split_name):
             corrupt_images.append(img_path)
             continue
 
-        label_dir = os.path.join(
-            os.path.dirname(os.path.dirname(img_path)),
-            'labels'
-        )
-
-        label_path = os.path.join(
-            label_dir,
-            os.path.splitext(os.path.basename(img_path))[0] + '.txt'
-        )
+        label_path = get_path(img_path)
 
         if not os.path.exists(label_path):
             missing_labels.append(img_path)
@@ -219,15 +221,7 @@ def get_image_lists():
 train_images_paths, val_images_paths = get_image_lists()
 
 
-def count_by_class(list_txt_path, base_path):
-
-    with open(list_txt_path, 'r') as f:
-
-        image_paths = [
-            line.strip()
-            for line in f
-            if line.strip()
-        ]
+def count_by_class(image_paths, base_path):
 
     counts = []
 
@@ -253,12 +247,12 @@ def count_by_class(list_txt_path, base_path):
 
 
 train_counts = count_by_class(
-    TRAIN_LIST_PATH,
+    train_images_paths,
     train_path
 )
 
 val_counts = count_by_class(
-    VAL_LIST_PATH,
+    val_images_paths,
     val_path
 )
 
@@ -347,15 +341,7 @@ def tumor_dimension():
 
     for img_path in train_images_paths + val_images_paths:
 
-        label_dir = os.path.join(
-            os.path.dirname(os.path.dirname(img_path)),
-            'labels'
-        )
-
-        txt_path = os.path.join(
-            label_dir,
-            os.path.splitext(os.path.basename(img_path))[0] + '.txt'
-        )
+        txt_path = get_path(img_path)
 
         if os.path.exists(txt_path):
 
@@ -506,15 +492,7 @@ def visualize_samples(image_list, num_samples):
 
         h_img, w_img, _ = img.shape
 
-        label_dir = os.path.join(
-            os.path.dirname(os.path.dirname(img_path)),
-            'labels'
-        )
-
-        txt_path = os.path.join(
-            label_dir,
-            os.path.splitext(os.path.basename(img_path))[0] + '.txt'
-        )
+        txt_path = get_path(img_path)
 
         if os.path.exists(txt_path):
 
@@ -584,7 +562,7 @@ def visualize_samples(image_list, num_samples):
     plt.tight_layout()
     plt.show()
 
-
+'''
 make_yaml()
 
 
@@ -600,3 +578,4 @@ results = model.train(
     seed=42,
     patience=10,
 )
+'''
