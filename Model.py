@@ -19,11 +19,6 @@ Class_Names = {
 }
 
 
-# ============================================================
-# DATASET PATHS
-# ============================================================
-
-# KEEPING OMAR'S ORIGINAL PATHS
 dataset_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes"
 
 train_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes\Train"
@@ -31,17 +26,9 @@ train_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes
 val_path = r"C:\Users\omar\Desktop\MLA Project\Brain Tumor with Bounding Boxes\Val"
 
 
-# ============================================================
-# TRAIN / VALIDATION LIST PATHS
-# ============================================================
-
 TRAIN_LIST_PATH = os.path.abspath('train_list.txt')
 VAL_LIST_PATH = os.path.abspath('val_list.txt')
 
-
-# ============================================================
-# VERIFY DATASET
-# ============================================================
 
 def verify_dataset(base_path, split_name):
 
@@ -58,14 +45,12 @@ def verify_dataset(base_path, split_name):
 
     for img_path in image_paths:
 
-        # Check if image can be opened
         cv_img = cv2.imread(img_path)
 
         if cv_img is None:
             corrupt_images.append(img_path)
             continue
 
-        # Get corresponding label path
         label_dir = os.path.join(
             os.path.dirname(os.path.dirname(img_path)),
             'labels'
@@ -80,7 +65,6 @@ def verify_dataset(base_path, split_name):
             missing_labels.append(img_path)
             continue
 
-        # Read labels
         with open(label_path, 'r') as f:
             lines = [
                 l.strip()
@@ -167,10 +151,6 @@ def verify_dataset(base_path, split_name):
     return clean_images_paths
 
 
-# ============================================================
-# CREATE TRAIN / VALIDATION TXT FILES
-# ============================================================
-
 def create_txt_files():
 
     train_images_paths = verify_dataset(
@@ -192,10 +172,6 @@ def create_txt_files():
     return train_images_paths, val_images_paths
 
 
-# ============================================================
-# READ TXT FILES
-# ============================================================
-
 def read_txt_files():
 
     with open(TRAIN_LIST_PATH, 'r') as f:
@@ -216,10 +192,6 @@ def read_txt_files():
 
     return train_images_paths, val_images_paths
 
-
-# ============================================================
-# GET IMAGE LISTS
-# ============================================================
 
 def get_image_lists():
 
@@ -246,10 +218,6 @@ def get_image_lists():
 
 train_images_paths, val_images_paths = get_image_lists()
 
-
-# ============================================================
-# COUNT BY CLASS
-# ============================================================
 
 def count_by_class(list_txt_path, base_path):
 
@@ -295,10 +263,6 @@ val_counts = count_by_class(
 )
 
 
-# ============================================================
-# CREATE YAML FILE
-# ============================================================
-
 def make_yaml():
 
     yaml_content = {
@@ -315,10 +279,6 @@ def make_yaml():
             default_flow_style=False
         )
 
-
-# ============================================================
-# DATA DISTRIBUTION
-# ============================================================
 
 def data_distributionb():
 
@@ -380,10 +340,6 @@ def data_distributionb():
     plt.show()
 
 
-# ============================================================
-# TUMOR DIMENSIONS
-# ============================================================
-
 def tumor_dimension():
 
     box_widths = []
@@ -443,10 +399,6 @@ def tumor_dimension():
     plt.tight_layout()
     plt.show()
 
-
-# ============================================================
-# IMAGE SHAPES
-# ============================================================
 
 def image_shapes():
 
@@ -524,10 +476,6 @@ def image_shapes():
     plt.show()
 
 
-# ============================================================
-# VISUALIZE SAMPLES
-# ============================================================
-
 def visualize_samples(image_list, num_samples):
 
     sample_paths = random.sample(
@@ -541,7 +489,6 @@ def visualize_samples(image_list, num_samples):
         figsize=(16, 4)
     )
 
-    # Handle the case where only one image is requested
     if num_samples == 1:
         axes = [axes]
 
@@ -638,16 +585,8 @@ def visualize_samples(image_list, num_samples):
     plt.show()
 
 
-# ============================================================
-# CREATE DATA.YAML
-# ============================================================
-
 make_yaml()
 
-
-# ============================================================
-# YOLOv8 BASELINE
-# ============================================================
 
 model = YOLO('yolov8n.pt')
 
