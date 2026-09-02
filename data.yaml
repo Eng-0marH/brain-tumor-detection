@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 names:
+=======
+nnames:
+>>>>>>> bc9a748828dd13aac411bb8cd6ddbeccbee9f102
   0: Glioma
   1: Meningioma
   2: No Tumor
   3: Pituitary
-train: C:\Users\omar\Desktop\MLA Project\train_list.txt
-val: C:\Users\omar\Desktop\MLA Project\val_list.txt
+
+train: C:\Users\MAYAR\Desktop\MLA Project\Brain Tumor with Bounding Boxes\train_list.txt
+val: C:\Users\MAYAR\Desktop\MLA Project\Brain Tumor with Bounding Boxes\val_list.txt
