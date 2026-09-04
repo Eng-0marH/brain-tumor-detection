@@ -26,26 +26,14 @@ Class_Names = {
 # ============================================================
 # DATASET PATHS
 # ============================================================
-
-dataset_path = r"C:\Users\MAYAR\Desktop\MLA Project\Brain Tumor with Bounding Boxes"
-
-train_path = r"C:\Users\MAYAR\Desktop\MLA Project\Brain Tumor with Bounding Boxes\Train"
-
-val_path = r"C:\Users\MAYAR\Desktop\MLA Project\Brain Tumor with Bounding Boxes\Val"
-
-
 # Project folder
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-def get_path(img_path):
-    label_dir = os.path.join(
-        os.path.dirname(os.path.dirname(img_path)),
-        'labels'
-    )
-    return os.path.join(
-        label_dir,
-        os.path.splitext(os.path.basename(img_path))[0] + '.txt'
-    )
+dataset_path = os.path.join(PROJECT_PATH, "Brain Tumor with Bounding Boxes")
+
+train_path = os.path.join(dataset_path, "Train")
+
+val_path = os.path.join(dataset_path, "Val")
 
 
 # List files are stored with the dataset
@@ -76,20 +64,20 @@ def get_label_path(img_path):
 # VERIFY DATASET
 # ============================================================
 
-def verify_dataset(dataset_path, dataset_name):
+def verify_dataset(base_path, dataset_name):
 
     print(f"\n{dataset_name} Dataset Verification")
     print("--------------------------------")
 
     image_paths = glob.glob(
-        os.path.join(dataset_path, '**', 'images', '*.jpg'),
+        os.path.join(base_path, '**', 'images', '*.jpg'),
         recursive=True
     )
 
     clean_images = []
     corrupt_images = []
     missing_labels = []
-    empty_labels = []
+    no_tumor_empty_labels = []
     invalid_bboxes = []
 
     for img_path in image_paths:
@@ -101,12 +89,8 @@ def verify_dataset(dataset_path, dataset_name):
             corrupt_images.append(img_path)
             continue
 
-<<<<<<< HEAD
-        label_path = get_path(img_path)
-=======
         # Find corresponding label
         label_path = get_label_path(img_path)
->>>>>>> bc9a748828dd13aac411bb8cd6ddbeccbee9f102
 
         if not os.path.exists(label_path):
             missing_labels.append(img_path)
@@ -124,13 +108,16 @@ def verify_dataset(dataset_path, dataset_name):
 
         except Exception:
 
-            missing_labels.append(img_path)
+            corrupt_images.append(img_path)
             continue
 
-        # Empty label
+        # Empty label (No Tumor)
         if len(lines) == 0:
 
-            empty_labels.append(label_path)
+            no_tumor_empty_labels.append(img_path)
+
+            clean_images.append(img_path)
+
             continue
 
         valid = True
@@ -195,26 +182,19 @@ def verify_dataset(dataset_path, dataset_name):
 
             invalid_bboxes.append(label_path)
 
-    print(f"Total Scanned:  {len(image_paths)}")
-    print(f"Clean Kept:     {len(clean_images)}")
-    print(f"Corrupt Images: {len(corrupt_images)}")
-    print(f"Missing Labels: {len(missing_labels)}")
-    print(f"Empty Labels:   {len(empty_labels)}")
-    print(f"Invalid BBoxes: {len(invalid_bboxes)}")
+    print(f"Total Scanned:         {len(image_paths)}")
+    print(f"Clean Kept:            {len(clean_images)}")
+    print(f"  - Annotated Images:  {len(clean_images) - len(no_tumor_empty_labels)}")
+    print(f"  - No Tumor (Empty):  {len(no_tumor_empty_labels)}")
+    print(f"Corrupt Images:        {len(corrupt_images)}")
+    print(f"Missing Labels:        {len(missing_labels)}")
+    print(f"Invalid BBoxes:        {len(invalid_bboxes)}")
 
     if missing_labels:
 
         print("\nMissing label files:")
 
-        for path in missing_labels:
-
-            print(path)
-
-    if empty_labels:
-
-        print("\nEmpty label files:")
-
-        for path in empty_labels:
+        for path in missing_labels[:5]:
 
             print(path)
 
@@ -222,7 +202,7 @@ def verify_dataset(dataset_path, dataset_name):
 
         print("\nInvalid bounding-box label files:")
 
-        for path in invalid_bboxes:
+        for path in invalid_bboxes[:5]:
 
             print(path)
 
@@ -312,50 +292,9 @@ def get_image_lists():
         return create_txt_files()
 
 
-<<<<<<< HEAD
-train_images_paths, val_images_paths = get_image_lists()
-
-
-def count_by_class(image_paths, base_path):
-
-    counts = []
-
-    for cls in Class_Names.values():
-
-        class_folder = os.path.normpath(
-            os.path.join(
-                base_path,
-                cls,
-                'images'
-            )
-        )
-
-        count = sum(
-            1
-            for p in image_paths
-            if os.path.normpath(p).startswith(class_folder)
-        )
-
-        counts.append(count)
-
-    return counts
-
-
-train_counts = count_by_class(
-    train_images_paths,
-    train_path
-)
-
-val_counts = count_by_class(
-    val_images_paths,
-    val_path
-)
-
-=======
 # ============================================================
 # CREATE YOLO DATA YAML
 # ============================================================
->>>>>>> bc9a748828dd13aac411bb8cd6ddbeccbee9f102
 
 def make_yaml():
 
@@ -409,9 +348,21 @@ def data_distributionb():
 
         with open(label_path, 'r') as f:
 
-            for line in f:
+            lines = [
+                line.strip()
+                for line in f
+                if line.strip()
+            ]
 
-                parts = line.strip().split()
+        if len(lines) == 0:
+
+            train_classes.append('No Tumor')
+
+        else:
+
+            for line in lines:
+
+                parts = line.split()
 
                 if len(parts) == 5:
 
@@ -430,9 +381,21 @@ def data_distributionb():
 
         with open(label_path, 'r') as f:
 
-            for line in f:
+            lines = [
+                line.strip()
+                for line in f
+                if line.strip()
+            ]
 
-                parts = line.strip().split()
+        if len(lines) == 0:
+
+            val_classes.append('No Tumor')
+
+        else:
+
+            for line in lines:
+
+                parts = line.split()
 
                 if len(parts) == 5:
 
@@ -462,14 +425,19 @@ def data_distributionb():
     print("\nClass Distribution:")
     print(distribution)
 
-    distribution.plot(
+    # Assign plot to an Axes object
+    ax = distribution.plot(
         kind='bar',
         figsize=(10, 6)
     )
 
+    # Add count labels above each bar
+    for container in ax.containers:
+        ax.bar_label(container, fmt='%d', padding=3)
+
     plt.title("Class Distribution")
     plt.xlabel("Class")
-    plt.ylabel("Number of Bounding Boxes")
+    plt.ylabel("Number of Bounding Boxes / Samples")
     plt.xticks(rotation=0)
 
     plt.tight_layout()
@@ -490,13 +458,9 @@ def tumor_dimension():
     heights = []
     classes = []
 
-<<<<<<< HEAD
-        txt_path = get_path(img_path)
-=======
     all_images = train_images + val_images
 
     for img_path in all_images:
->>>>>>> bc9a748828dd13aac411bb8cd6ddbeccbee9f102
 
         label_path = get_label_path(img_path)
 
@@ -542,6 +506,9 @@ def tumor_dimension():
         hue='Class'
     )
 
+    plt.xlim(0, 1.0)
+    plt.ylim(0, 1.0)
+
     plt.title("Tumor Bounding Box Dimensions")
     plt.xlabel("Normalized Width")
     plt.ylabel("Normalized Height")
@@ -560,49 +527,41 @@ def image_shapes():
 
     train_images, val_images = get_image_lists()
 
-    shapes = []
+    img_sizes = []
 
-    all_images = train_images + val_images
+    for img_path in train_images + val_images:
 
-    for img_path in all_images:
+        with Image.open(img_path) as img:
+            img_sizes.append(img.size)
 
-        image = cv2.imread(img_path)
+    widths, heights = zip(*img_sizes)
 
-        if image is not None:
+    x_min, x_max = np.percentile(widths, [1, 99])
+    y_min, y_max = np.percentile(heights, [1, 99])
 
-            height, width = image.shape[:2]
+    plt.figure(figsize=(7, 4))
 
-            shapes.append(
-                (width, height)
-            )
-
-    shape_df = pd.DataFrame(
-        shapes,
-        columns=['Width', 'Height']
+    plt.hist2d(
+        widths,
+        heights,
+        bins=10,
+        range=[[x_min, x_max], [y_min, y_max]],
+        cmap='viridis'
     )
 
-    print("\nImage Shape Distribution:")
+    plt.colorbar(label='Image Count')
 
-    print(
-        shape_df.value_counts().head(20)
-    )
+    plt.title("Image Resolution Distribution", fontsize=12, fontweight="bold")
+    plt.xlabel("Width (Pixels)", fontsize=10)
+    plt.ylabel("Height (Pixels)", fontsize=10)
 
-    plt.figure(figsize=(10, 6))
-
-    sns.scatterplot(
-        data=shape_df,
-        x='Width',
-        y='Height'
-    )
-
-    plt.title("Image Dimensions")
-    plt.xlabel("Width")
-    plt.ylabel("Height")
+    plt.xticks(np.linspace(x_min, x_max, 10).astype(int))
+    plt.yticks(np.linspace(y_min, y_max, 10).astype(int))
 
     plt.tight_layout()
     plt.show()
 
-    return shape_df
+    return widths, heights
 
 
 # ============================================================
@@ -613,6 +572,10 @@ def visualize_samples(num_samples=6):
 
     train_images, val_images = get_image_lists()
 
+    if len(train_images) == 0:
+        print("No training images found to visualize.")
+        return
+
     if len(train_images) < num_samples:
 
         num_samples = len(train_images)
@@ -622,17 +585,26 @@ def visualize_samples(num_samples=6):
         num_samples
     )
 
+    cols = min(num_samples, 3)
+    rows = (num_samples + cols - 1) // cols
+
     fig, axes = plt.subplots(
-        2,
-        3,
-        figsize=(15, 10)
+        rows,
+        cols,
+        figsize=(5 * cols, 5 * rows)
     )
 
-    axes = np.array(axes).flatten()
+    if num_samples == 1:
+        axes = np.array([axes])
+    else:
+        axes = np.array(axes).flatten()
 
     for i, img_path in enumerate(samples):
 
         image = cv2.imread(img_path)
+
+        if image is None:
+            continue
 
         image = cv2.cvtColor(
             image,
@@ -641,62 +613,99 @@ def visualize_samples(num_samples=6):
 
         label_path = get_label_path(img_path)
 
-<<<<<<< HEAD
-        txt_path = get_path(img_path)
-=======
-        with open(label_path, 'r') as f:
+        lines = []
 
-            lines = f.readlines()
+        if os.path.exists(label_path):
+
+            with open(label_path, 'r') as f:
+
+                lines = [
+                    line.strip()
+                    for line in f
+                    if line.strip()
+                ]
 
         height, width = image.shape[:2]
 
-        for line in lines:
+        if len(lines) == 0:
 
-            parts = line.strip().split()
+            text = "No Tumor"
+            font_scale = 0.7
+            thickness = 2
+            font = cv2.FONT_HERSHEY_SIMPLEX
 
-            if len(parts) != 5:
-                continue
-
-            class_id = int(parts[0])
-
-            x_center = float(parts[1])
-            y_center = float(parts[2])
-            box_width = float(parts[3])
-            box_height = float(parts[4])
-
-            x1 = int(
-                (x_center - box_width / 2) * width
+            text_size, _ = cv2.getTextSize(
+                text,
+                font,
+                font_scale,
+                thickness
             )
 
-            y1 = int(
-                (y_center - box_height / 2) * height
-            )
+            text_w, text_h = text_size
 
-            x2 = int(
-                (x_center + box_width / 2) * width
-            )
-
-            y2 = int(
-                (y_center + box_height / 2) * height
-            )
-
-            cv2.rectangle(
-                image,
-                (x1, y1),
-                (x2, y2),
-                (255, 0, 0),
-                2
-            )
+            # Position at top-right with a 15px padding margin
+            text_x = width - text_w - 15
+            text_y = text_h + 15
 
             cv2.putText(
                 image,
-                Class_Names[class_id],
-                (x1, max(y1 - 10, 20)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (255, 0, 0),
-                2
+                text,
+                (text_x, text_y),
+                font,
+                font_scale,
+                (0, 255, 0),
+                thickness
             )
+
+        else:
+
+            for line in lines:
+
+                parts = line.split()
+
+                if len(parts) != 5:
+                    continue
+
+                class_id = int(parts[0])
+
+                x_center = float(parts[1])
+                y_center = float(parts[2])
+                box_width = float(parts[3])
+                box_height = float(parts[4])
+
+                x1 = int(
+                    (x_center - box_width / 2) * width
+                )
+
+                y1 = int(
+                    (y_center - box_height / 2) * height
+                )
+
+                x2 = int(
+                    (x_center + box_width / 2) * width
+                )
+
+                y2 = int(
+                    (y_center + box_height / 2) * height
+                )
+
+                cv2.rectangle(
+                    image,
+                    (x1, y1),
+                    (x2, y2),
+                    (255, 0, 0),
+                    2
+                )
+
+                cv2.putText(
+                    image,
+                    Class_Names.get(class_id, "Unknown"),
+                    (x1, max(y1 - 10, 20)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 0, 0),
+                    2
+                )
 
         axes[i].imshow(image)
 
@@ -706,43 +715,24 @@ def visualize_samples(num_samples=6):
             os.path.basename(img_path)
         )
 
-    for j in range(i + 1, len(axes)):
->>>>>>> bc9a748828dd13aac411bb8cd6ddbeccbee9f102
+    for j in range(len(samples), len(axes)):
 
         axes[j].axis('off')
 
     plt.tight_layout()
     plt.show()
 
-<<<<<<< HEAD
-'''
-make_yaml()
-=======
 
 # ============================================================
 # MAIN - DATA PREPARATION + YOLOv8n BASELINE TRAINING
 # ============================================================
->>>>>>> bc9a748828dd13aac411bb8cd6ddbeccbee9f102
 
 if __name__ == "__main__":
 
-    # Get verified image lists
+    
     train_images_paths, val_images_paths = get_image_lists()
 
-<<<<<<< HEAD
-results = model.train(
-    data='data.yaml',
-    epochs=50,
-    imgsz=640,
-    batch=16,
-    workers=4,
-    name='yolov8n_baseline',
-    seed=42,
-    patience=10,
-)
-'''
-=======
-    # Create the correct YAML for this computer
+   
     yaml_path = make_yaml()
 
     print("\nDataset preparation completed.")
@@ -755,61 +745,8 @@ results = model.train(
         f"Validation images: {len(val_images_paths)}"
     )
 
-    print(
-        "\nStarting YOLOv8n baseline training..."
-    )
-
-    # --------------------------------------------------------
-    # Save training output next to the dataset.
-    # This avoids the Windows folder-creation problem
-    # encountered inside the GitHub project folder.
-    # --------------------------------------------------------
-
-    project_dir = os.path.join(
-        dataset_path,
-        'runs',
-        'detect'
-    )
-
-    os.makedirs(
-        project_dir,
-        exist_ok=True
-    )
-
-    # --------------------------------------------------------
-    # Load YOLOv8n pretrained weights
-    # --------------------------------------------------------
-
-    model = YOLO('yolov8n.pt')
-
-    # --------------------------------------------------------
-    # BASELINE TRAINING
-    # --------------------------------------------------------
-
-    results = model.train(
-
-        # IMPORTANT:
-        # Use the YAML generated above, NOT 'data.yaml'
-        data=yaml_path,
-
-        epochs=50,
-
-        imgsz=640,
-
-        batch=16,
-
-        workers=4,
-
-        project=project_dir,
-
-        name='yolov8n_baseline',
-
-        exist_ok=True,
-
-        seed=42,
-
-        patience=10,
-    )
-
-    print("\nTraining completed successfully!")
->>>>>>> bc9a748828dd13aac411bb8cd6ddbeccbee9f102
+    
+    data_distributionb()
+    tumor_dimension()
+    image_shapes()
+    visualize_samples(num_samples=9)
