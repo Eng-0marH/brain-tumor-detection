@@ -5,40 +5,20 @@ import numpy as np
 import cv2
 import seaborn as sns
 import matplotlib.pyplot as plt
-from ultralytics import YOLO
-import yaml
 import random
 from PIL import Image
 
-
-# ============================================================
-# CLASS NAMES
-# ============================================================
-
-Class_Names = {
-    0: 'Glioma',
-    1: 'Meningioma',
-    2: 'No Tumor',
-    3: 'Pituitary'
-}
+from config import CLASS_NAMES, TRAIN_PATH, VAL_PATH, BUILD_PATH
 
 
 # ============================================================
-# DATASET PATHS
+# EDA OUTPUT PATHS
 # ============================================================
-# Project folder
-PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-dataset_path = os.path.join(PROJECT_PATH, "Brain Tumor with Bounding Boxes")
+EDA_OUTPUT_PATH = os.path.join(BUILD_PATH, 'eda')
 
-train_path = os.path.join(dataset_path, "Train")
-
-val_path = os.path.join(dataset_path, "Val")
-
-
-# List files are stored with the dataset
-TRAIN_LIST_PATH = os.path.join(dataset_path, 'train_list.txt')
-VAL_LIST_PATH = os.path.join(dataset_path, 'val_list.txt')
+TRAIN_LIST_PATH = os.path.join(EDA_OUTPUT_PATH, 'train_list.txt')
+VAL_LIST_PATH = os.path.join(EDA_OUTPUT_PATH, 'val_list.txt')
 
 
 # ============================================================
@@ -61,6 +41,26 @@ def get_label_path(img_path):
 
 
 # ============================================================
+# GET IMAGES
+# ============================================================
+
+def _get_images(base_path):
+
+    image_paths = []
+
+    for ext in ('*.jpg', '*.jpeg', '*.png'):
+
+        image_paths.extend(
+            glob.glob(
+                os.path.join(base_path, '**', 'images', ext),
+                recursive=True
+            )
+        )
+
+    return sorted(image_paths)
+
+
+# ============================================================
 # VERIFY DATASET
 # ============================================================
 
@@ -69,10 +69,7 @@ def verify_dataset(base_path, dataset_name):
     print(f"\n{dataset_name} Dataset Verification")
     print("--------------------------------")
 
-    image_paths = glob.glob(
-        os.path.join(base_path, '**', 'images', '*.jpg'),
-        recursive=True
-    )
+    image_paths = _get_images(base_path)
 
     clean_images = []
     corrupt_images = []
@@ -147,7 +144,7 @@ def verify_dataset(base_path, dataset_name):
                 break
 
             # Class must exist
-            if class_id not in Class_Names:
+            if class_id not in CLASS_NAMES:
 
                 valid = False
                 break
@@ -216,12 +213,12 @@ def verify_dataset(base_path, dataset_name):
 def get_verified_datasets():
 
     train_images = verify_dataset(
-        train_path,
+        TRAIN_PATH,
         "Train"
     )
 
     val_images = verify_dataset(
-        val_path,
+        VAL_PATH,
         "Val"
     )
 
@@ -236,7 +233,7 @@ def create_txt_files():
 
     train_images, val_images = get_verified_datasets()
 
-    os.makedirs(dataset_path, exist_ok=True)
+    os.makedirs(EDA_OUTPUT_PATH, exist_ok=True)
 
     with open(TRAIN_LIST_PATH, 'w') as f:
 
@@ -293,42 +290,6 @@ def get_image_lists():
 
 
 # ============================================================
-# CREATE YOLO DATA YAML
-# ============================================================
-
-def make_yaml():
-
-    yaml_content = {
-        'train': TRAIN_LIST_PATH,
-        'val': VAL_LIST_PATH,
-        'names': Class_Names
-    }
-
-    yaml_path = os.path.join(
-        dataset_path,
-        'data.yaml'
-    )
-
-    yaml_text = yaml.safe_dump(
-        yaml_content,
-        default_flow_style=False,
-        sort_keys=False
-    )
-
-    with open(
-        yaml_path,
-        'w',
-        encoding='utf-8'
-    ) as f:
-
-        f.write(yaml_text)
-
-    print("\ndata.yaml created successfully.")
-
-    return yaml_path
-
-
-# ============================================================
 # DATA DISTRIBUTION
 # ============================================================
 
@@ -369,7 +330,7 @@ def data_distributionb():
                     class_id = int(parts[0])
 
                     train_classes.append(
-                        Class_Names[class_id]
+                        CLASS_NAMES[class_id]
                     )
 
     for img_path in val_images:
@@ -402,7 +363,7 @@ def data_distributionb():
                     class_id = int(parts[0])
 
                     val_classes.append(
-                        Class_Names[class_id]
+                        CLASS_NAMES[class_id]
                     )
 
     train_counts = pd.Series(
@@ -419,7 +380,7 @@ def data_distributionb():
     }).fillna(0)
 
     distribution = distribution.reindex(
-        Class_Names.values()
+        CLASS_NAMES.values()
     ).fillna(0)
 
     print("\nClass Distribution:")
@@ -485,7 +446,7 @@ def tumor_dimension():
                 heights.append(height)
 
                 classes.append(
-                    Class_Names[class_id]
+                    CLASS_NAMES[class_id]
                 )
 
     dimension_df = pd.DataFrame({
@@ -699,7 +660,7 @@ def visualize_samples(num_samples=6):
 
                 cv2.putText(
                     image,
-                    Class_Names.get(class_id, "Unknown"),
+                    CLASS_NAMES.get(class_id, "Unknown"),
                     (x1, max(y1 - 10, 20)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.6,
@@ -724,16 +685,12 @@ def visualize_samples(num_samples=6):
 
 
 # ============================================================
-# MAIN - DATA PREPARATION + YOLOv8n BASELINE TRAINING
+# MAIN - DATA PREPARATION + EDA
 # ============================================================
 
 if __name__ == "__main__":
 
-    
     train_images_paths, val_images_paths = get_image_lists()
-
-   
-    yaml_path = make_yaml()
 
     print("\nDataset preparation completed.")
 
@@ -745,7 +702,6 @@ if __name__ == "__main__":
         f"Validation images: {len(val_images_paths)}"
     )
 
-    
     data_distributionb()
     tumor_dimension()
     image_shapes()

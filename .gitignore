@@ -223,10 +223,7 @@ Brain Tumor with Bounding Boxes/
 *.jpeg
 *.png
 
-# Ignore generated manifest lists
-train_list.txt
-val_list.txt
-
 # Ignore YOLO training runs & model weights
 runs/
 *.pt
+*.pth
