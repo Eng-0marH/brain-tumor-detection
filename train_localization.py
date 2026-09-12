@@ -1,35 +1,32 @@
 import os
-from ultralytics import YOLO
+from rfdetr import RFDETRMedium
 
 from config import (
-    LOCALIZATION_DATASET_PATH, RUNS_PATH, YOLO_RUN_NAME, YOLO_BASE_MODEL,
-    YOLO_EPOCHS, YOLO_IMG_SIZE, YOLO_BATCH, DEVICE_TRAIN,
+    LOCALIZATION_DATASET_PATH, RFDETR_OUTPUT_DIR, RFDETR_EPOCHS,
+    RFDETR_BATCH, RFDETR_GRAD_ACCUM_STEPS, RFDETR_LR, DEVICE_TRAIN,
 )
 
 
 def train_localization_model():
-    data_yaml = os.path.join(LOCALIZATION_DATASET_PATH, "data_localization.yaml")
+    os.makedirs(RFDETR_OUTPUT_DIR, exist_ok=True)
 
-    project_dir = os.path.join(RUNS_PATH, "localization")
-    os.makedirs(project_dir, exist_ok=True)
-
-    model = YOLO(YOLO_BASE_MODEL)
+    
+    model = RFDETRMedium()
 
     results = model.train(
-        data=data_yaml,
-        epochs=YOLO_EPOCHS,
-        imgsz=YOLO_IMG_SIZE,
-        batch=YOLO_BATCH,
-        workers=4,
-        project=project_dir,
-        name=YOLO_RUN_NAME,
-        exist_ok=True,
-        seed=42,
-        patience=10,
+        dataset_dir=LOCALIZATION_DATASET_PATH,
+        epochs=RFDETR_EPOCHS,
+        batch_size=RFDETR_BATCH,
+        grad_accum_steps=RFDETR_GRAD_ACCUM_STEPS,
+        lr=RFDETR_LR,
+        output_dir=RFDETR_OUTPUT_DIR,
         device=DEVICE_TRAIN,
+        early_stopping=True,
+        seed=42,
     )
 
-    print("YOLO11m localization training completed.")
+    print("RF-DETR Medium localization training completed.")
+    print(f"Best checkpoint: {os.path.join(RFDETR_OUTPUT_DIR, 'checkpoint_best_total.pth')}")
     return results
 
 

@@ -79,7 +79,7 @@ def build_localization_dataset():
     _build_split(TRAIN_PATH, "Train", train_images_dir, train_labels_dir)
     _build_split(VAL_PATH, "Val", val_images_dir, val_labels_dir)
 
-    yaml_path = os.path.join(LOCALIZATION_DATASET_PATH, "data_localization.yaml")
+    yaml_path = os.path.join(LOCALIZATION_DATASET_PATH, "data.yaml")
 
     yaml_content = {
         "train": train_images_dir,
@@ -90,7 +90,7 @@ def build_localization_dataset():
     with open(yaml_path, "w") as f:
         yaml.safe_dump(yaml_content, f, default_flow_style=False, sort_keys=False)
 
-    print(f"data_localization.yaml written to: {yaml_path}")
+    print(f"data.yaml written to: {yaml_path}")
     return yaml_path
 
 

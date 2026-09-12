@@ -219,6 +219,7 @@ __marimo__/
 
 # Ignore raw dataset folder and image files
 Brain Tumor with Bounding Boxes/
+pipeline_errors/
 *.jpg
 *.jpeg
 *.png

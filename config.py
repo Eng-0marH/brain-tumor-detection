@@ -28,10 +28,9 @@ CLASSIFIER_DATASET_PATH = os.path.join(BUILD_PATH, "classifier_dataset")
 
 #trained model locations
 RUNS_PATH = os.path.join(PROJECT_PATH, "runs")
-YOLO_RUN_NAME = "yolo11m_tumor_localization"
-YOLO_MODEL_PATH = os.path.join(
-    RUNS_PATH, "localization", YOLO_RUN_NAME, "weights", "best.pt"
-)
+RFDETR_RUN_NAME = "rfdetr_medium_tumor_localization"
+RFDETR_OUTPUT_DIR = os.path.join(RUNS_PATH, "localization", RFDETR_RUN_NAME)
+RFDETR_MODEL_PATH = os.path.join(RFDETR_OUTPUT_DIR, "checkpoint_best_total.pth")
 
 CLASSIFIER_MODEL_PATH = os.path.join(
     RUNS_PATH, "classification", "efficientnet_b0_best.pth"
@@ -46,17 +45,17 @@ CONFIDENCE_THRESHOLD = 0.25
 CLAHE_CLIP_LIMIT = 2.0
 CLAHE_TILE_GRID_SIZE = (8, 8)
 
-YOLO_BASE_MODEL = "yolo11m.pt"
-YOLO_EPOCHS = 50
-YOLO_IMG_SIZE = 640
-YOLO_BATCH = 16
+RFDETR_EPOCHS = 50
+RFDETR_BATCH = 4
+RFDETR_GRAD_ACCUM_STEPS = 4
+RFDETR_LR = 1e-4
 
 CLASSIFIER_EPOCHS = 50
 CLASSIFIER_BATCH = 64
 CLASSIFIER_LR = 0.0001
 
-DEVICE_TRAIN = "mps"
-DEVICE_EVAL = "cpu"
+DEVICE_TRAIN = "cuda"
+DEVICE_EVAL = "cuda"
 
 # analysis / error outputs 
 ANALYSIS_PATH = os.path.join(PROJECT_PATH, "analysis")

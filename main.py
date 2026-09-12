@@ -15,7 +15,7 @@ def run_pipeline(prepare=True, train=True, evaluate=True):
         build_classifier_dataset()
 
     if train:
-        print("\n=== Stage 1: training YOLO11m localizer ===")
+        print("\n=== Stage 1: training RF-DETR localizer ===")
         train_localization_model()
 
         print("\n=== Stage 2: training tumor type classifier ===")
