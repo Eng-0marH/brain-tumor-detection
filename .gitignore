@@ -226,5 +226,10 @@ pipeline_errors/
 
 # Ignore YOLO training runs & model weights
 runs/
+analysis/
 *.pt
 *.pth
+# Report figures should still be committed even though *.png/*.jpg are
+# ignored above (they come from generated dataset images, not report assets)
+!analysis/**/*.png
+!analysis/**/*.jpg

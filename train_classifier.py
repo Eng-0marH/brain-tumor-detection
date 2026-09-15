@@ -6,8 +6,9 @@ from torchvision import datasets, transforms, models
 
 from config import (
     CLASSIFIER_DATASET_PATH, RUNS_PATH, IMAGE_SIZE, CLASSIFIER_BATCH,
-    CLASSIFIER_EPOCHS, CLASSIFIER_LR, DEVICE_TRAIN,
+    CLASSIFIER_EPOCHS, CLASSIFIER_LR, DEVICE_TRAIN, resolve_device,
 )
+from reporting import print_header, print_row
 
 
 def _build_transforms():
@@ -27,7 +28,9 @@ def _build_transforms():
 
 
 def train_classifier_model():
-    device = torch.device(DEVICE_TRAIN)
+    print_header("Training EfficientNet-B0 type classifier")
+
+    device = torch.device(resolve_device(DEVICE_TRAIN))
     train_transform, val_transform = _build_transforms()
 
     train_dataset = datasets.ImageFolder(os.path.join(CLASSIFIER_DATASET_PATH, "train"), transform=train_transform)
@@ -36,9 +39,11 @@ def train_classifier_model():
     train_loader = DataLoader(train_dataset, batch_size=CLASSIFIER_BATCH, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=CLASSIFIER_BATCH, shuffle=False)
 
-    print(f"Training images: {len(train_dataset)}")
-    print(f"Validation images: {len(val_dataset)}")
-    print(f"Classes: {train_dataset.classes}")
+    print_row("Training images", len(train_dataset))
+    print_row("Validation images", len(val_dataset))
+    print_row("Classes", ", ".join(train_dataset.classes))
+    print_row("Device", device)
+    print()
 
     model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
     num_features = model.classifier[1].in_features
@@ -93,7 +98,8 @@ def train_classifier_model():
             torch.save(model.state_dict(), best_model_path)
             print("Best model saved.")
 
-    print(f"\nBest validation accuracy: {best_val_accuracy:.2f}%")
+    print()
+    print(f"Best validation accuracy: {best_val_accuracy:.2f}%")
     print(f"Best model saved to: {best_model_path}")
     return best_model_path
 
