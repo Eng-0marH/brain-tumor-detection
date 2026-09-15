@@ -5,9 +5,10 @@ from torchvision import transforms, models
 from rfdetr import RFDETRMedium
 
 from config import (
-    RFDETR_MODEL_PATH, CLASSIFIER_MODEL_PATH, IMAGE_SIZE,
-    CONFIDENCE_THRESHOLD, CROP_PADDING_RATIO, TUMOR_CLASS_NAMES,
+    CLASSIFIER_MODEL_PATH, IMAGE_SIZE, CONFIDENCE_THRESHOLD,
+    CROP_PADDING_RATIO, TUMOR_CLASS_NAMES, resolve_rfdetr_checkpoint,
 )
+from preprocessing import pad_and_clip
 
 
 def build_classifier_transform():
@@ -20,8 +21,9 @@ def build_classifier_transform():
 
 
 def load_localization_model():
-
-    return RFDETRMedium(pretrain_weights=RFDETR_MODEL_PATH)
+    checkpoint_path = resolve_rfdetr_checkpoint()
+    print(f"RF-DETR checkpoint: {checkpoint_path}")
+    return RFDETRMedium(pretrain_weights=checkpoint_path)
 
 
 def load_classifier_model(device):
@@ -34,20 +36,17 @@ def load_classifier_model(device):
     return model
 
 
-def _pad_and_clip(x1, y1, x2, y2, width, height, padding_ratio):
-    box_w, box_h = x2 - x1, y2 - y1
-    pad_x = int(box_w * padding_ratio)
-    pad_y = int(box_h * padding_ratio)
-
-    x1 = max(0, min(x1 - pad_x, width))
-    y1 = max(0, min(y1 - pad_y, height))
-    x2 = max(0, min(x2 + pad_x, width))
-    y2 = max(0, min(y2 + pad_y, height))
-    return x1, y1, x2, y2
-
-
 def run_pipeline(image_bgr, loc_model, type_model, transform, device):
-    
+    """Detect a tumor, then classify its type.
+
+    Returns:
+        predicted_class        final 4-class answer ("No Tumor" if nothing detected)
+        detected               whether RF-DETR produced any box
+        detection_confidence   confidence of the selected box
+        classifier_confidence  softmax confidence of the type prediction
+        detection_box          selected box as RF-DETR returned it, used for IoU
+        crop_box               the padded box actually fed to the classifier
+    """
     height, width = image_bgr.shape[:2]
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
 
@@ -58,7 +57,8 @@ def run_pipeline(image_bgr, loc_model, type_model, transform, device):
         "detected": len(detections.xyxy) > 0,
         "detection_confidence": None,
         "classifier_confidence": None,
-        "box": None,
+        "detection_box": None,
+        "crop_box": None,
     }
 
     if not result["detected"]:
@@ -67,9 +67,12 @@ def run_pipeline(image_bgr, loc_model, type_model, transform, device):
     best_index = int(detections.confidence.argmax())
     result["detection_confidence"] = float(detections.confidence[best_index])
 
-    x1, y1, x2, y2 = detections.xyxy[best_index]
-    x1, y1, x2, y2 = _pad_and_clip(int(x1), int(y1), int(x2), int(y2), width, height, CROP_PADDING_RATIO)
-    result["box"] = (x1, y1, x2, y2)
+    x1, y1, x2, y2 = (int(value) for value in detections.xyxy[best_index])
+    result["detection_box"] = (x1, y1, x2, y2)
+
+    # padded box gives the classifier the same framing it was trained on
+    x1, y1, x2, y2 = pad_and_clip(x1, y1, x2, y2, width, height, CROP_PADDING_RATIO)
+    result["crop_box"] = (x1, y1, x2, y2)
 
     crop = image_bgr[y1:y2, x1:x2]
     if crop.size == 0:

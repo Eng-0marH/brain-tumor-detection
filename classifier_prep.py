@@ -2,8 +2,12 @@ import os
 import glob
 import cv2
 
-from config import TRAIN_PATH, VAL_PATH, CLASS_NAMES, TUMOR_CLASS_IDS, CLASSIFIER_DATASET_PATH, CROP_PADDING_RATIO
-from preprocessing import apply_clahe
+from config import (
+    TRAIN_PATH, VAL_PATH, CLASS_NAMES, TUMOR_CLASS_IDS,
+    CLASSIFIER_DATASET_PATH, CROP_PADDING_RATIO,
+)
+from preprocessing import apply_clahe, pad_and_clip
+from reporting import print_header
 
 
 def _get_images(folder):
@@ -13,26 +17,15 @@ def _get_images(folder):
     return sorted(images)
 
 
-def _pad_and_clip(x1, y1, x2, y2, width, height, padding_ratio):
-    box_w = x2 - x1
-    box_h = y2 - y1
-
-    pad_x = int(box_w * padding_ratio)
-    pad_y = int(box_h * padding_ratio)
-
-    x1 = max(0, x1 - pad_x)
-    y1 = max(0, y1 - pad_y)
-    x2 = min(width, x2 + pad_x)
-    y2 = min(height, y2 + pad_y)
-
-    return x1, y1, x2, y2
-
-
 def _crop_split(split_path, split_name, output_root):
     for class_id in TUMOR_CLASS_IDS:
         os.makedirs(os.path.join(output_root, CLASS_NAMES[class_id]), exist_ok=True)
 
-    for class_id in TUMOR_CLASS_IDS:
+    total = 0
+
+    print(f"\n{split_name} -> {output_root}")
+
+    for class_id in sorted(TUMOR_CLASS_IDS):
         class_name = CLASS_NAMES[class_id]
 
         images_path = os.path.join(split_path, class_name, "images")
@@ -65,6 +58,9 @@ def _crop_split(split_path, split_name, output_root):
             for box_index, line in enumerate(lines):
                 parts = line.split()
 
+                if len(parts) != 5:
+                    continue
+
                 x_center, y_center, box_width, box_height = map(float, parts[1:])
 
                 x_center *= width
@@ -77,7 +73,9 @@ def _crop_split(split_path, split_name, output_root):
                 x2 = int(x_center + box_width / 2)
                 y2 = int(y_center + box_height / 2)
 
-                x1, y1, x2, y2 = _pad_and_clip(x1, y1, x2, y2, width, height, CROP_PADDING_RATIO)
+                x1, y1, x2, y2 = pad_and_clip(
+                    x1, y1, x2, y2, width, height, CROP_PADDING_RATIO
+                )
 
                 if x2 <= x1 or y2 <= y1:
                     continue
@@ -90,10 +88,16 @@ def _crop_split(split_path, split_name, output_root):
                 cv2.imwrite(output_file, crop)
                 crop_count += 1
 
-        print(f"{split_name} - {class_name}: {crop_count} crops created")
+        print(f"  {class_name}: {crop_count} crops created")
+        total += crop_count
+
+    print(f"  total: {total} crops")
+    return total
 
 
 def build_classifier_dataset():
+    print_header("Preparing classifier dataset")
+
     train_output = os.path.join(CLASSIFIER_DATASET_PATH, "train")
     val_output = os.path.join(CLASSIFIER_DATASET_PATH, "val")
 
