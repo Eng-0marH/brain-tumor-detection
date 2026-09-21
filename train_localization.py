@@ -6,11 +6,10 @@ from config import (
     RFDETR_EPOCHS, RFDETR_BATCH, RFDETR_GRAD_ACCUM_STEPS, RFDETR_LR,
     DEVICE_TRAIN, resolve_device,
 )
-from reporting import print_header, print_saved
 
 
 def train_localization_model():
-    print_header("Training RF-DETR Medium localizer")
+    print("\n=== Training RF-DETR Medium localizer ===")
 
     os.makedirs(RFDETR_OUTPUT_DIR, exist_ok=True)
 
@@ -39,7 +38,7 @@ def train_localization_model():
 
     print()
     print("RF-DETR Medium localization training completed.")
-    print_saved("Checkpoints written to", RFDETR_OUTPUT_DIR)
+    print("Checkpoints written to:", RFDETR_OUTPUT_DIR)
     return results
 
 

@@ -13,11 +13,10 @@ from detection_metrics import load_ground_truth_boxes, best_iou
 from pipeline_inference import (
     build_classifier_transform, load_localization_model, load_classifier_model, run_pipeline,
 )
-from reporting import print_header, print_subheader, print_row, print_saved
 
 
 # Each error is attributed to the stage that caused it, instead of being
-# lumped into a single "wrong prediction" bucket.
+# grouped into a single "wrong prediction" bucket.
 FALSE_NEGATIVE = "False Negative"
 FALSE_POSITIVE = "False Positive"
 LOCALIZATION_ERROR = "Localization Error"
@@ -75,7 +74,7 @@ def collect_pipeline_errors(write_csv=True):
     device = torch.device(resolve_device(DEVICE_EVAL))
     transform = build_classifier_transform()
 
-    print_header("Pipeline error analysis")
+    print("\n=== Pipeline error analysis ===")
     print("Loading models...")
     loc_model = load_localization_model()
     type_model = load_classifier_model(device)
@@ -125,8 +124,7 @@ def collect_pipeline_errors(write_csv=True):
             # No Tumor: any detection at all is a localizer false positive
             if not is_tumor_class:
                 if result["detected"]:
-                    # the classifier still ran on this crop; keep its guess
-                    # (e.g. "Glioma") rather than a generic "Tumor" label
+                    
                     errors.append(_make_error(
                         image_path, true_class, result["predicted_class"],
                         "RF-DETR", FALSE_POSITIVE, result, iou,
@@ -204,17 +202,17 @@ def _print_report(errors, stats):
     total = stats["total_images"]
     accuracy = (stats["correct"] / total * 100) if total else 0.0
 
-    print_subheader("Overall")
-    print_row("Validation images", total)
-    print_row("Correct", stats["correct"])
-    print_row("Errors", len(errors))
-    print_row("Accuracy", f"{accuracy:.2f}%")
+    print("\nOverall:")
+    print("Validation images:", total)
+    print("Correct:", stats["correct"])
+    print("Errors:", len(errors))
+    print("Accuracy:", f"{accuracy:.2f}%")
 
-    print_subheader("Errors by stage")
+    print("\nErrors by stage:")
     for error_type in ERROR_TYPES:
-        print_row(error_type, stats["by_error_type"][error_type])
+        print(f"{error_type}: {stats['by_error_type'][error_type]}")
 
-    print_subheader("Errors by class")
+    print("\nErrors by class:")
     for class_name in CLASS_NAMES.values():
         class_errors = [e for e in errors if e["true_class"] == class_name]
 
@@ -234,9 +232,9 @@ def _print_report(errors, stats):
             )
 
     if errors:
-        print_subheader("Saved files")
-        print_saved("Error details", PIPELINE_ERRORS_CSV)
-        print_saved("Error summary", PIPELINE_ERROR_SUMMARY_CSV)
+        print("\nSaved files:")
+        print("Error details:", PIPELINE_ERRORS_CSV)
+        print("Error summary:", PIPELINE_ERROR_SUMMARY_CSV)
 
     print()
     print("Pipeline error analysis completed.")

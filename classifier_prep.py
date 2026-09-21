@@ -7,7 +7,6 @@ from config import (
     CLASSIFIER_DATASET_PATH, CROP_PADDING_RATIO,
 )
 from preprocessing import apply_clahe, pad_and_clip
-from reporting import print_header
 
 
 def _get_images(folder):
@@ -96,7 +95,7 @@ def _crop_split(split_path, split_name, output_root):
 
 
 def build_classifier_dataset():
-    print_header("Preparing classifier dataset")
+    print("\n=== Preparing classifier dataset ===")
 
     train_output = os.path.join(CLASSIFIER_DATASET_PATH, "train")
     val_output = os.path.join(CLASSIFIER_DATASET_PATH, "val")

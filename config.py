@@ -45,8 +45,8 @@ RUNS_PATH = os.path.join(PROJECT_PATH, "runs")
 RFDETR_RUN_NAME = "rfdetr_medium_tumor_localization"
 RFDETR_OUTPUT_DIR = os.path.join(RUNS_PATH, "localization", RFDETR_RUN_NAME)
 
-# RF-DETR writes several checkpoints. The EMA weights are usually the stronger
-# ones, so they are preferred and the plain best checkpoint is the fallback.
+# RF-DETR writes several checkpoints. The EMA weights are  stronger
+
 RFDETR_CHECKPOINT_NAMES = (
     "checkpoint_best_ema.pth",
     "checkpoint_best_total.pth",

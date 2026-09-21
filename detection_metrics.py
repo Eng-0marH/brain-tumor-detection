@@ -4,7 +4,6 @@ from config import TUMOR_CLASS_IDS
 
 
 def compute_iou(box_a, box_b):
-    """Intersection over Union of two [x1, y1, x2, y2] boxes."""
     x1 = max(box_a[0], box_b[0])
     y1 = max(box_a[1], box_b[1])
     x2 = min(box_a[2], box_b[2])
@@ -25,9 +24,7 @@ def compute_iou(box_a, box_b):
 
 def load_ground_truth_boxes(label_path, image_width, image_height):
     """Read YOLO-format tumor boxes and return them as pixel [x1, y1, x2, y2].
-
-    Non-tumor class ids are skipped, so a No Tumor image yields an empty list
-    and is treated as background, matching how the localizer was trained.
+    Non-tumor class ids are skipped
     """
     boxes = []
 

@@ -8,7 +8,6 @@ from config import (
     CLASSIFIER_DATASET_PATH, RUNS_PATH, IMAGE_SIZE, CLASSIFIER_BATCH,
     CLASSIFIER_EPOCHS, CLASSIFIER_LR, DEVICE_TRAIN, resolve_device,
 )
-from reporting import print_header, print_row
 
 
 def _build_transforms():
@@ -28,7 +27,7 @@ def _build_transforms():
 
 
 def train_classifier_model():
-    print_header("Training EfficientNet-B0 type classifier")
+    print("\n=== Training EfficientNet-B0 type classifier ===")
 
     device = torch.device(resolve_device(DEVICE_TRAIN))
     train_transform, val_transform = _build_transforms()
@@ -39,10 +38,10 @@ def train_classifier_model():
     train_loader = DataLoader(train_dataset, batch_size=CLASSIFIER_BATCH, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=CLASSIFIER_BATCH, shuffle=False)
 
-    print_row("Training images", len(train_dataset))
-    print_row("Validation images", len(val_dataset))
-    print_row("Classes", ", ".join(train_dataset.classes))
-    print_row("Device", device)
+    print("Training images:", len(train_dataset))
+    print("Validation images:", len(val_dataset))
+    print("Classes:", ", ".join(train_dataset.classes))
+    print("Device:", device)
     print()
 
     model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)

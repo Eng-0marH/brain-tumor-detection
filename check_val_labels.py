@@ -2,7 +2,6 @@ import os
 import glob
 
 from config import class_from_filename, localization_split_dir
-from reporting import print_header, print_subheader, print_row
 
 
 def check_val_labels():
@@ -10,8 +9,8 @@ def check_val_labels():
     images_folder = os.path.join(split_dir, "images")
     labels_folder = os.path.join(split_dir, "labels")
 
-    print_header("Checking localization validation labels")
-    print_row("Labels folder", labels_folder)
+    print("\n=== Checking localization validation labels ===")
+    print("Labels folder:", labels_folder)
 
     label_files = sorted(glob.glob(os.path.join(labels_folder, "*.txt")))
 
@@ -45,7 +44,7 @@ def check_val_labels():
             lines = [line.strip() for line in f if line.strip()]
 
         if not lines:
-            # Empty label = background / No Tumor, which is valid.
+            # Empty label = background or No Tumor, which is valid.
             background_labels += 1
             continue
 
@@ -62,12 +61,12 @@ def check_val_labels():
                 problems += 1
                 break
 
-    print_subheader("Summary")
-    print_row("Label files checked", len(label_files))
-    print_row("Background (empty) labels", background_labels)
-    print_row("Missing class prefix", missing_prefix)
-    print_row("Labels without an image", orphan_labels)
-    print_row("Problems found", problems)
+    print("\nSummary:")
+    print("Label files checked:", len(label_files))
+    print("Background (empty) labels:", background_labels)
+    print("Missing class prefix:", missing_prefix)
+    print("Labels without an image:", orphan_labels)
+    print("Problems found:", problems)
 
     return problems
 

@@ -8,7 +8,6 @@ from config import (
     LOCALIZATION_DATASET_PATH, class_prefix, localization_split_dir,
 )
 from preprocessing import apply_clahe
-from reporting import print_header, print_saved
 
 
 def _get_images(folder):
@@ -19,8 +18,8 @@ def _get_images(folder):
 
 
 def _map_label_lines(label_path):
-    # every tumor id mapped to a single class 0; No Tumor boxes are dropped
-    # so those images become background examples with an empty label file
+    # every tumor id mapped to a single class 0 and No Tumor boxes are dropped
+
     if not os.path.exists(label_path):
         return []
 
@@ -71,8 +70,7 @@ def _build_split(split_path, split_name):
 
             image = apply_clahe(image)
 
-            # the class prefix keeps same-named images from different class
-            # folders apart, and lets evaluation recover the class from the name
+            # the class prefix keeps same-named images from different class folders
             output_stem = prefix + stem
 
             cv2.imwrite(os.path.join(images_dir, output_stem + extension), image)
@@ -95,7 +93,7 @@ def _build_split(split_path, split_name):
 
 
 def build_localization_dataset():
-    print_header("Preparing localization dataset")
+    print("\n=== Preparing localization dataset ===")
 
     _, train_images_dir = _build_split(TRAIN_PATH, "Train")
     _, val_images_dir = _build_split(VAL_PATH, "Val")
@@ -112,7 +110,7 @@ def build_localization_dataset():
         yaml.safe_dump(yaml_content, f, default_flow_style=False, sort_keys=False)
 
     print()
-    print_saved("data.yaml written to", yaml_path)
+    print("data.yaml written to:", yaml_path)
     return yaml_path
 
 

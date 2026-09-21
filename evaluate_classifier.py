@@ -9,11 +9,10 @@ from config import (
     CLASSIFIER_DATASET_PATH, CLASSIFIER_MODEL_PATH, IMAGE_SIZE,
     CLASSIFIER_BATCH, DEVICE_EVAL, resolve_device,
 )
-from reporting import print_header, print_subheader, print_row
 
 
 def evaluate_classifier():
-    print_header("Type classifier evaluation")
+    print("\n=== Type classifier evaluation ===")
 
     device = torch.device(resolve_device(DEVICE_EVAL))
 
@@ -28,9 +27,9 @@ def evaluate_classifier():
     )
     val_loader = DataLoader(val_dataset, batch_size=CLASSIFIER_BATCH, shuffle=False)
 
-    print_row("Validation crops", len(val_dataset))
-    print_row("Classes", ", ".join(val_dataset.classes))
-    print_row("Device", device)
+    print("Validation crops:", len(val_dataset))
+    print("Classes:", ", ".join(val_dataset.classes))
+    print("Device:", device)
 
     model = models.efficientnet_b0(weights=None)
     num_features = model.classifier[1].in_features
@@ -57,15 +56,15 @@ def evaluate_classifier():
 
     accuracy = sum(p == l for p, l in zip(all_predictions, all_labels)) / len(all_labels) * 100
 
-    print_subheader("Overall")
-    print_row("Accuracy", f"{accuracy:.2f}%")
+    print("\nOverall:")
+    print("Accuracy:", f"{accuracy:.2f}%")
 
-    print_subheader("Classification report")
+    print("\nClassification report:")
     print(classification_report(
         all_labels, all_predictions, target_names=val_dataset.classes, digits=4
     ))
 
-    print_subheader("Confusion matrix")
+    print("\nConfusion matrix:")
     print(confusion_matrix(all_labels, all_predictions))
 
     print()

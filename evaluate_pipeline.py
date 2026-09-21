@@ -8,7 +8,6 @@ from preprocessing import apply_clahe
 from pipeline_inference import (
     build_classifier_transform, load_localization_model, load_classifier_model, run_pipeline,
 )
-from reporting import print_header, print_subheader, print_row
 
 
 def _get_images(folder):
@@ -19,7 +18,7 @@ def _get_images(folder):
 
 
 def evaluate_full_pipeline():
-    print_header("Full pipeline evaluation")
+    print("\n=== Full pipeline evaluation ===")
 
     device = torch.device(resolve_device(DEVICE_EVAL))
     transform = build_classifier_transform()
@@ -69,19 +68,16 @@ def evaluate_full_pipeline():
 
     accuracy = correct_predictions / total_images * 100
 
-    print_subheader("Overall")
-    print_row("Validation images", total_images)
-    print_row("Correct", correct_predictions)
-    print_row("Accuracy", f"{accuracy:.2f}%")
+    print("\nOverall:")
+    print("Validation images:", total_images)
+    print("Correct:", correct_predictions)
+    print("Accuracy:", f"{accuracy:.2f}%")
 
-    print_subheader("Per-class accuracy")
+    print("\nPer-class accuracy:")
     for class_name, results in class_results.items():
         if results["total"] > 0:
             class_accuracy = results["correct"] / results["total"] * 100
-            print_row(
-                class_name,
-                f"{class_accuracy:.2f}% ({results['correct']}/{results['total']})",
-            )
+            print(f"{class_name}: {class_accuracy:.2f}% ({results['correct']}/{results['total']})")
 
     print()
     print("Full pipeline evaluation completed.")
